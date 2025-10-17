@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel Admin Seguro</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+    input, button { padding: 8px; margin: 5px 0; width: 100%; max-width: 400px; }
+    .produto { background: #fff; padding: 15px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body>
+  <h1>Painel Admin Seguro</h1>
+
+  <script>
+    // 🔐 Sua senha longa
+    const SENHA_ADMIN = "C2&u1e^LWyq]3gswy/ZgV&h7Q(C4:|hh%*8J)CQ/_xHa3uh]8[lL%JY#vxfuNX...v;K1%i0LWL|63Yf.076j4+!+>]R4M,9NHpFBVojt7IVQhYg!m,/Hj~w3~_t;Mf";
+
+    const senha = prompt("Digite a senha do admin:");
+    if (senha !== SENHA_ADMIN) {
+      document.body.innerHTML = "<h2>Senha incorreta. Acesso negado!</h2>";
+      throw new Error("Senha incorreta");
+    }
+
+    let produtos = [];
+
+    async function carregarProdutos() {
+      const resposta = await fetch('produtos.json');
+      produtos = await resposta.json();
+    }
+
+    function salvarProdutos() {
+      alert("Copie este JSON e substitua no produtos.json do GitHub:\n\n" + JSON.stringify(produtos, null, 2));
+    }
+
+    function render() {
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+      container.innerHTML = '';
+
+      produtos.forEach((prod, index) => {
+        const div = document.createElement('div');
+        div.className = 'produto';
+        div.innerHTML = `
+          <h2>Produto ${index + 1}</h2>
+          <input type="text" placeholder="Nome" value="${prod.nome || ''}" data-index="${index}" data-campo="nome">
+          <input type="text" placeholder="Descrição" value="${prod.descricao || ''}" data-index="${index}" data-campo="descricao">
+          <input type="text" placeholder="Preço" value="${prod.preco || ''}" data-index="${index}" data-campo="preco">
+          <input type="text" placeholder="Link" value="${prod.link || ''}" data-index="${index}" data-campo="link">
+          <input type="text" placeholder="Imagem URL" value="${prod.imagem || ''}" data-index="${index}" data-campo="imagem">
+          <button onclick="produtos.splice(${index},1); render();">Excluir Produto</button>
+          <hr>
+        `;
+        container.appendChild(div);
+      });
+
+      const addBtn = document.createElement('button');
+      addBtn.textContent = "Adicionar Produto";
+      addBtn.onclick = () => {
+        produtos.push({id: produtos.length + 1, nome:"", descricao:"", preco:"", link:"", imagem:""});
+        render();
+      };
+      container.appendChild(addBtn);
+
+      const salvarBtn = document.createElement('button');
+      salvarBtn.textContent = "Salvar Produtos";
+      salvarBtn.onclick = salvarProdutos;
+      container.appendChild(salvarBtn);
+
+      container.querySelectorAll('input').forEach(input => {
+        input.oninput = () => {
+          const idx = input.dataset.index;
+          const campo = input.dataset.campo;
+          produtos[idx][campo] = input.value;
+        };
+      });
+    }
+
+    async function init() {
+      await carregarProdutos();
+      render();
+    }
+
+    init();
+  </script>
+</body>
+</html>
